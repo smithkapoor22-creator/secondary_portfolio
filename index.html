@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Interface</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
+
+body{
+  background:#050505;
+  color:white;
+  overflow-x:hidden;
+}
+
+canvas{
+  position:fixed;
+  top:0;
+  left:0;
+}
+
+.content{
+  position:relative;
+  z-index:10;
+}
+
+section{
+  height:100vh;
+  display:flex;
+  align-items:center;
+  padding:60px;
+}
+
+h1{
+  font-size:4rem;
+  background:linear-gradient(90deg,#ff0044,#ff9900);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.glass{
+  backdrop-filter:blur(20px);
+  background:rgba(255,255,255,0.05);
+  padding:40px;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,0.1);
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="content">
+  <section><div class="glass"><h1>Neural Core</h1></div></section>
+  <section><div class="glass"><h1>Signals Activated</h1></div></section>
+  <section><div class="glass"><h1>Rewriting Intelligence</h1></div></section>
+</div>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.158/examples/jsm/loaders/GLTFLoader.js';
+
+// Scene
+const scene = new THREE.Scene();
+
+// Camera
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+camera.position.set(0,0,6);
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({
+  canvas: document.getElementById('bg'),
+  antialias:true
+});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+
+// Lights
+const light1 = new THREE.PointLight(0xff0044, 3);
+light1.position.set(5,5,5);
+scene.add(light1);
+
+const light2 = new THREE.PointLight(0x0066ff, 3);
+light2.position.set(-5,-5,5);
+scene.add(light2);
+
+scene.add(new THREE.AmbientLight(0x222222));
+
+// Load Brain
+let brain;
+
+const loader = new GLTFLoader();
+loader.load('./brain.glb', (gltf)=>{
+  brain = gltf.scene;
+  brain.scale.set(2,2,2);
+
+  // Enhance material
+  brain.traverse((child)=>{
+    if(child.isMesh){
+      child.material.metalness = 0.4;
+      child.material.roughness = 0.3;
+      child.material.emissive = new THREE.Color(0x220011);
+      child.material.emissiveIntensity = 0.6;
+    }
+  });
+
+  scene.add(brain);
+});
+
+// Neural Particles
+const particlesGeometry = new THREE.BufferGeometry();
+const count = 3000;
+const positions = new Float32Array(count*3);
+
+for(let i=0;i<count*3;i++){
+  positions[i] = (Math.random()-0.5)*10;
+}
+
+particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions,3));
+
+const particlesMaterial = new THREE.PointsMaterial({
+  size:0.02,
+  color:0xff3366
+});
+
+const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+scene.add(particles);
+
+// Scroll control
+let scrollY = 0;
+window.addEventListener('scroll', ()=>{
+  scrollY = window.scrollY;
+});
+
+// Mouse interaction
+let mouseX=0, mouseY=0;
+window.addEventListener('mousemove',(e)=>{
+  mouseX = (e.clientX/innerWidth - 0.5);
+  mouseY = (e.clientY/innerHeight - 0.5);
+});
+
+// Animation
+let clock = new THREE.Clock();
+
+function animate(){
+  requestAnimationFrame(animate);
+
+  let t = clock.getElapsedTime();
+
+  if(brain){
+    // Alive pulse
+    let s = 1 + Math.sin(t*2)*0.02;
+    brain.scale.set(s,s,s);
+
+    // Rotation
+    brain.rotation.y += 0.003;
+
+    // Neural "energy flicker"
+    brain.traverse((child)=>{
+      if(child.isMesh){
+        child.material.emissiveIntensity = 0.5 + Math.sin(t*5)*0.3;
+      }
+    });
+
+    // Mouse parallax
+    brain.rotation.x += (mouseY*0.5 - brain.rotation.x)*0.05;
+    brain.rotation.y += (mouseX*0.5 - brain.rotation.y)*0.05;
+  }
+
+  // Camera scroll
+  camera.position.z = 6 - scrollY*0.002;
+
+  // Particle motion
+  particles.rotation.y += 0.0008;
+
+  renderer.render(scene,camera);
+}
+
+animate();
+
+// Resize
+window.addEventListener('resize', ()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+
+</body>
+</html>
